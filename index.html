@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pavuk Sound & Light - Výpočet Fáz a Zaťaženia</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #ff9800;
+            font-size: 22px;
+            text-align: center;
+        }
+        .phase-box {
+            background: #2c2c2c;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border-left: 5px solid #ff9800;
+        }
+        .phase-l1 { border-left-color: #f44336; }
+        .phase-l2 { border-left-color: #4CAF50; }
+        .phase-l3 { border-left-color: #2196F3; }
+        
+        input, select, button {
+            padding: 8px;
+            margin: 5px 0;
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 4px;
+        }
+        button {
+            background: #ff9800;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background: #e68900;
+        }
+        .warning {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .device-list {
+            font-size: 14px;
+            margin-top: 5px;
+            color: #bbb;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>⚡ Rozdelenie Zaťaženia Fáz (Zvuk & Svetlá)</h1>
+    
+    <div style="background: #252525; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+        <h3>Pridať zariadenie</h3>
+        <input type="text" id="devName" placeholder="Názov (napr. Zosilňovač, LED Bary)" style="width: 60%;">
+        <input type="number" id="devWatts" placeholder="Príkon (W)" style="width: 30%;">
+        <select id="devPhase">
+            <option value="1">Fáza 1 (L1)</option>
+            <option value="2">Fáza 2 (L2)</option>
+            <option value="3">Fáza 3 (L3)</option>
+        </select>
+        <button onclick="addDevice()">Pridať</button>
+    </div>
+
+    <div class="phase-box phase-l1">
+        <h3>Fáza 1 (L1 - Červená)</h3>
+        <p>Celkový príkon: <span id="watts1">0</span> W | Prúd: <span id="amps1">0.00</span> A</p>
+        <div id="list1" class="device-list">Žiadne zariadenia</div>
+    </div>
+
+    <div class="phase-box phase-l2">
+        <h3>Fáza 2 (L2 - Zelená)</h3>
+        <p>Celkový príkon: <span id="watts2">0</span> W | Prúd: <span id="amps2">0.00</span> A</p>
+        <div id="list2" class="device-list">Žiadne zariadenia</div>
+    </div>
+
+    <div class="phase-box phase-l3">
+        <h3>Fáza 3 (L3 - Modrá)</h3>
+        <p>Celkový príkon: <span id="watts3">0</span> W | Prúd: <span id="amps3">0.00</span> A</p>
+        <div id="list3" class="device-list">Žiadne zariadenia</div>
+    </div>
+</div>
+
+<script>
+    let phases = { 1: [], 2: [], 3: [] };
+
+    function addDevice() {
+        let name = document.getElementById('devName').value.trim();
+        let watts = parseFloat(document.getElementById('devWatts').value);
+        let phase = document.getElementById('devPhase').value;
+
+        if (!name || isNaN(watts) || watts <= 0) {
+            alert("Zadaj platný názov a príkon vo wattoch!");
+            return;
+        }
+
+        phases[phase].push({ name, watts });
+        
+        document.getElementById('devName').value = '';
+        document.getElementById('devWatts').value = '';
+        
+        updateDisplay();
+    }
+
+    function updateDisplay() {
+        for (let i = 1; i <= 3; i++) {
+            let totalWatts = phases[i].reduce((sum, d) => sum + d.watts, 0);
+            let totalAmps = totalWatts / 230;
+
+            document.getElementById(`watts${i}`).innerText = totalWatts;
+            document.getElementById(`amps${i}`).innerText = totalAmps.toFixed(2);
+
+            let listHtml = phases[i].map(d => `• ${d.name} (${d.watts} W)`).join('<br>');
+            if (totalAmps > 16) {
+                listHtml += `<br><span class="warning">⚠️ Pozor: Prekročená rezerva 16A ističa!</span>`;
+            }
+            document.getElementById(`list${i}`).innerHTML = listHtml || "Žiadne zariadenia";
+        }
+    }
+</script>
+
+</body>
+</html>
